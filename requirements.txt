@@ -1,0 +1,17 @@
+PyMySQL
+sqlalchemy
+tornado
+requests[socks]
+coloredlogs
+requests[socks]
+websocket-client
+protobuf
+click
+retry
+Pillow
+test
+toml
+flask-restful
+emoji
+celery[librabbitmq,redis,auth,msgpack]
+flower
