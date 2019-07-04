@@ -70,7 +70,7 @@ def getLocalTask(): #获取本地任务
 
 def run(task):
     osid = os.getpid()
-    print("子进程开始执行>>> pid={},ppid={} args={}".format(os.getpid(), os.getppid(),type(task)))
+    print("子进程开始执行>>> pid={},ppid={} args={}".format(os.getpid(), multiprocessing.current_process().name,type(task)))
     if task == None:
         task = getNewTask()
         if task.status == 1:
@@ -141,6 +141,7 @@ def run(task):
             vedio_info["uid"] = task_data["uid"]
             vedio_info["url_list"] = task_data["url_list"]
         task.uploadFail = 0
+        task.sendFail =0
         for target_userid in target_userids:
             if not str(target_userid) in task.uids:
                 task.uids[str(target_userid)] = {}
@@ -158,11 +159,13 @@ def run(task):
                 if img_url:
                     ret = user.wss_im_send(target_userid=target_userid, img_bytes=img_bytes)
                     if str(ret) == "图片上传失败":
-                        task.uploadFail+=1
-                        if task.uploadFail>=3:
+                        task.uploadFail += 1
+                        if task.uploadFail >= 3:
                             logger.warning("图片上传失败超过三次 放弃")
                             break
+
                 if ret == True:
+                    task.sendFail=0
                     user.im_success += 1
                     msg='成功'
                     task.uids[str(target_userid)]["state"] =1
@@ -171,16 +174,24 @@ def run(task):
                                 '''UPDATE os_ch_pro_rel SET send_num = send_num + 1 WHERE channel_id = {} AND profile_id = {}'''.format(task.task_info.get("channel_id"),task.user_info.get("id")),
                                 """UPDATE os_task_bak SET uids = '{}' WHERE uid='{}'""".format(json.dumps(task.uids),task.user_info.get("user_id"))])
                 else:
-                    msg = '失败'
-                    user.im_fail += 1
+                    msg = '失败:{} '.format(user.im_send_status)
+                    user.im_fail+=1
                     err =  ret
                     if user.im_send_status == "7177":
                         logger.warning("线程ID:{} 私信功能被封禁".format(osid))
                         db = Database()
                         db.execute(['''Update os_aweme_profile set status =2 ,status_desc='私信功能被封禁' where id = {}'''.format(task.user_info.get("id"))])
                         break
+                    if str(ret) == "False":
+                        task.sendFail += 1
+                        if task.sendFail%10 ==0:
+                            logger.warning("线程ID:{} 私信连续失败5次 更换代理IP".format(osid))
+                            user.content.proxy = utiles.get_proxy()
+                        if task.sendFail>=21:
+                            logger.warning("线程ID:{} 私信连续失败10次 跳过".format(osid))
+                            break
 
-                logger.warning("线程ID:{} 私信发送{}: 粉丝:{}/成功{}/失败{}".format(osid, msg,len(target_userids),user.im_success,user.im_fail))
+                logger.warning("线程ID:{} 私信发送{}: 粉丝:{}/成功{}/失败{}/连续失败{}".format(osid, msg,len(target_userids),user.im_success,user.im_fail,task.sendFail))
                 #logger.info("{} 私信发送成功: {} -> {} 发送成功数量:{}".format(osid, user.uid, target_userid, user.im_success))
             else:
                 user.im_success += 1
@@ -253,6 +264,7 @@ def main():
     im(num)
 
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
     main()
     #oneMain()
 

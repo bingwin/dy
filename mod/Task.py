@@ -13,6 +13,7 @@ class Task():
     uids = None
     accid = None
     uploadFail = 0
+    sendFail = 0
     def __int__(self):
         self.task_info = None
         self.user_info = None

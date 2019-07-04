@@ -463,6 +463,12 @@ class User():
                         elif re.search(r'7185', resp):
                             # 该用户关闭了私信功能，无法接收到你的消息
                             self.im_send_status = "7185"
+                        elif re.search(r'7182', resp):
+                            # 没有相互关注 不能发送图片
+                            self.im_send_status = "7185"
+                        elif re.search(r'7190', resp):
+                            # 没有相互关注 不能使用语音
+                            self.im_send_status = "7190"
                         elif re.search(r'status_code\\":0,', resp):
                             self.im_send_status = True
                         else:
