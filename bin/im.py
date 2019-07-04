@@ -1,16 +1,15 @@
 
-from mod.user import *
-from mod.Task import *
-import json
-import time
-import requests
+
+
 from queue import Queue
 
-import os
+import os,sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 import signal
 from multiprocessing import  Queue
 from multiprocessing.pool import Pool
-
+from mod.Task import *
+from mod.user import *
 
 import click
 import multiprocessing
@@ -248,9 +247,9 @@ def poolMangaer(num): #进程池管理
 
 
 
-@click.command()
-@click.option('-num', prompt='进程数量', help='进程池数量')
-def main(num):
+
+def main():
+    num = input("进程数量:")
     im(num)
 
 if __name__ == '__main__':
