@@ -186,9 +186,10 @@ class User():
                 'max_time': max_time
             }).json()
             for item in resp['followers']:
-                follower_list.append(item['uid'])
-                self.uids[str(item['uid'])] = dict()
-                self.uids[str(item['uid'])]["state"] = 0
+                if not item["nickname"] == "已重置":
+                    follower_list.append(item['uid'])
+                    self.uids[str(item['uid'])] = dict()
+                    self.uids[str(item['uid'])]["state"] = 0
             if resp['has_more'] == False:
                 break
             else:
