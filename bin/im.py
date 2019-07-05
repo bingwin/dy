@@ -142,6 +142,7 @@ def run(task):
             vedio_info["url_list"] = task_data["url_list"]
         task.uploadFail = 0
         task.sendFail =0
+        task.sendClose = 0
         for target_userid in target_userids:
             if not str(target_userid) in task.uids:
                 task.uids[str(target_userid)] = {}
@@ -149,7 +150,6 @@ def run(task):
             if str(task.uids[str(target_userid)]["state"]) == "0":
                 if text:
                     ret = user.wss_im_send(target_userid=target_userid, text=text)
-
                 if voice_url:
                     ret = user.wss_im_send(target_userid=target_userid, audio_bytes=audio_bytes)
                 if link_info:
@@ -166,6 +166,7 @@ def run(task):
 
                 if ret == True:
                     task.sendFail=0
+                    task.sendClose=0
                     user.im_success += 1
                     msg='成功'
                     task.uids[str(target_userid)]["state"] =1
@@ -182,6 +183,11 @@ def run(task):
                         db = Database()
                         db.execute(['''Update os_aweme_profile set status =2 ,status_desc='私信功能被封禁' where id = {}'''.format(task.user_info.get("id"))])
                         break
+                    if str(ret) =="closed":
+                        task.sendClose +=1
+                        if task.sendClose>=2:
+                            logger.warning("线程ID:{} 私信会话关闭超过2次 更换代理IP".format(osid))
+                            user.content.proxy = utiles.get_proxy()
                     if str(ret) == "False":
                         task.sendFail += 1
                         if task.sendFail%10 ==0:
