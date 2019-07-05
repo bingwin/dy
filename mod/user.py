@@ -351,7 +351,6 @@ class User():
 
             self.im_online()
             self.wss_start()
-
             utiles.loop_sleep(timeout=5, msg="开启私信成功，{}秒后发送私信")
             return True
 
@@ -870,5 +869,6 @@ class User():
             return self.im_send_status
         except Exception as ex:
             logger.warning("im_send---except  --  给用户发送私信的时候出错 {} ".format(ex))
+            self.content.proxy = utiles.get_proxy()
             self.im_init()
             return "except"

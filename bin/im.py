@@ -183,18 +183,13 @@ def run(task):
                         db = Database()
                         db.execute(['''Update os_aweme_profile set status =2 ,status_desc='私信功能被封禁' where id = {}'''.format(task.user_info.get("id"))])
                         break
-                    if str(ret) =="closed":
-                        task.sendClose +=1
-                        if task.sendClose>=2:
-                            logger.warning("线程ID:{} 私信会话关闭超过2次 更换代理IP".format(osid))
-                            user.content.proxy = utiles.get_proxy()
-                    if str(ret) == "False":
+                    if str(ret) == "False" or str(ret) == "closed":
                         task.sendFail += 1
                         if task.sendFail%10 ==0:
-                            logger.warning("线程ID:{} 私信连续失败5次 更换代理IP".format(osid))
+                            logger.warning("线程ID:{} 私信连续失败10次 更换代理IP".format(osid))
                             user.content.proxy = utiles.get_proxy()
                         if task.sendFail>=21:
-                            logger.warning("线程ID:{} 私信连续失败10次 跳过".format(osid))
+                            logger.warning("线程ID:{} 私信连续失败21次 跳过".format(osid))
                             break
 
                 logger.warning("线程ID:{} 私信发送{}: 粉丝:{}/成功{}/失败{}/连续失败{}".format(osid, msg,len(target_userids),user.im_success,user.im_fail,task.sendFail))
