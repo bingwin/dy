@@ -348,6 +348,7 @@ class User():
             logger.warning("im_init() | {}".format(self.message_token_status_code))
             return False
         else:
+
             self.im_online()
             self.wss_start()
 
@@ -519,6 +520,8 @@ class User():
                                          on_error=self.__wss_on_error,
                                          on_close=self.__wss_on_close)
         self.im.on_open = self.__wss_on_open
+        if self.content.proxy == None:
+            self.content.proxy = utiles.get_proxy()
         if self.content.proxy != None:
             #ph, pp = self.content.proxy['http'].split(":")
             #ph = ph.strip("http://")
@@ -531,8 +534,11 @@ class User():
                 ret = self.content.proxy.split("@")[1].split(":")
                 ph = ret[0]
                 pp = ret[1]
+
             logger.info("wss proxy: {}:{}".format(ph, pp))
             self.im.run_forever(http_proxy_host=ph, http_proxy_port=pp)
+
+
         else:
             logger.info("未使用wss proxy")
             self.im.run_forever()
@@ -712,7 +718,6 @@ class User():
             paylaod = message.SerializeToString()
             #print("---------")
             self.im.send(paylaod, opcode=websocket.ABNF.OPCODE_BINARY)
-
             retry1 = 0
             while True:
                 retry1 += 1
