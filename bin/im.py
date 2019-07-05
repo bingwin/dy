@@ -2,6 +2,7 @@
 
 
 from queue import Queue
+import signal
 
 import os,sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
@@ -256,11 +257,23 @@ def poolMangaer(num): #进程池管理
     p.close()
     p.join()
 
+class InputTimeoutError(Exception):
+    pass
+
+def interrupted(signum, frame):
+    raise InputTimeoutError
 
 
 
 def main():
-    num = input("进程数量:")
+    signal.signal(signal.SIGALRM, interrupted)
+    signal.alarm(3)
+
+    try:
+        num = input('进程数量(5秒内输入 默认:[40])：')
+    except InputTimeoutError:
+        num = 40
+    signal.alarm(0)  # 读到输入的话重置信号
     im(num)
 
 if __name__ == '__main__':
